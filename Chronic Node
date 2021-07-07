@@ -1,0 +1,102 @@
+#pragma hdrstop
+
+#include "pyVaultChronicleNode.h"
+#include "plVault/plVault.h"
+#ifndef BUILDING_PYPLASMA
+#   include "pyVault.h"
+#endif
+
+// should only be created from C++ side
+pyVaultChronicleNode::pyVaultChronicleNode(RelVaultNode* nfsNode)
+: pyVaultNode(nfsNode)
+, ansiName(nil)
+, ansiValue(nil)
+{
+}
+
+//create from the Python side
+pyVaultChronicleNode::pyVaultChronicleNode(int n)
+: pyVaultNode(NEWZERO(RelVaultNode))
+, ansiName(nil)
+, ansiValue(nil)
+{
+    fNode->SetNodeType(plVault::kNodeType_Chronicle);
+}
+
+pyVaultChronicleNode::~pyVaultChronicleNode () {
+    free(ansiName);
+    free(ansiValue);
+}
+
+
+//==================================================================
+// class RelVaultNode : public plVaultNode
+//
+void pyVaultChronicleNode::Chronicle_SetName( const char * text )
+{
+    if (!fNode)
+        return;
+
+    wchar_t * wStr = StrDupToUnicode(text);
+    VaultChronicleNode chron(fNode);
+    chron.SetEntryName(wStr);
+    free(wStr);
+}
+
+const char * pyVaultChronicleNode::Chronicle_GetName( void )
+{
+    if (!fNode)
+        return "";
+
+    free(ansiName);
+    VaultChronicleNode chron(fNode);
+    ansiName = StrDupToAnsi(chron.entryName);
+    
+    return ansiName;
+}
+
+void pyVaultChronicleNode::Chronicle_SetValue( const char * text )
+{
+    if (!fNode)
+        return;
+        
+    wchar_t * wStr = StrDupToUnicode(text);
+    VaultChronicleNode chron(fNode);
+    chron.SetEntryValue(wStr);
+    free(wStr);
+}
+
+const char * pyVaultChronicleNode::Chronicle_GetValue( void )
+{
+    if (!fNode)
+        return "";
+        
+    free(ansiValue);
+    ansiValue = nil;
+    
+    VaultChronicleNode chron(fNode);
+    
+    if (!chron.entryValue)
+        return "";
+        
+    ansiValue = StrDupToAnsi(chron.entryValue);
+    return ansiValue;
+}
+
+void pyVaultChronicleNode::Chronicle_SetType( uint32_t type )
+{
+    if (!fNode)
+        return;
+
+    VaultChronicleNode chron(fNode);
+    chron.SetEntryType(type);
+}
+
+uint32_t pyVaultChronicleNode::Chronicle_GetType( void )
+{
+    if (!fNode)
+        return 0;
+
+    VaultChronicleNode chron(fNode);
+    return chron.entryType;
+}
